@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>GeoAR Camera Frame</title>
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <script>
+        // Place Object 저장 배열 생성
+        const loadPlaces = function () {
+        const PLACES = [
+          {
+              name: "GS25",
+              location: {
+                  lat: 37.4996228, 
+                  lng: 127.0948930, 
+              },
+          }
+        ];
+        return Promise.resolve(PLACES);
+      }
+      
+      // Place Object 추가
+      window.onload = () => {
+        const scene = document.querySelector('a-scene');
+        return navigator.geolocation.getCurrentPosition(function (position) {
+            console.log("현재 내위치는 : " +position.coords.latitude+", 경도: " + position.coords.longitude + "에 있습니다");
+            loadPlaces()
+                  .then((places) => {
+                    places.forEach((place) => {
+                        const latitude = place.location.lat;
+                        const longitude = place.location.lng;
+
+                        const icon = document.createElement('a-image');
+                        icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
+                        icon.setAttribute('look-at','[gps-camera]')
+                        icon.setAttribute('src', '/img/map-marker.png');                        
+                        icon.setAttribute('scale', '10, 10 10');
+                        icon.setAttribute('object-loc-control');
+                        scene.appendChild(icon);
+                      });
+                  })
+          },
+              (err) => console.error('Error in retrieving position', err),
+              {
+                  enableHighAccuracy: true,
+                  maximumAge: 0,
+                  timeout: 27000,
+              }
+          );
+      };
+    </script>
+    <script>
+        AFRAME.registerComponent('object-loc-control', {
+
+            init: function () {
+                // Do something when component first attached.
+                this.tick = AFRAME.utils.throttleTick(this.tick, 1000, this);
+            },
+
+            update: function () {
+                // Do something when component's data is updated.
+            },
+
+            remove: function () {
+                // Do something the component or its entity is detached.
+            },
+
+            tick: function (time, timeDelta) {
+                // Do something on every scene tick or frame.
+            }
+            });
+    </script>
+</head>
+
+<body style='margin: 0; overflow: hidden;'>
+    <a-scene
+        debug
+        cursor='rayOrigin: mouse; fuse: true; fuseTimeout: 0;'
+        raycaster="objects: [gps-entity-place];"
+        vr-mode-ui="enabled: false"
+        embedded
+        arjs='sourceType: webcam; sourceWidth:1080; sourceHeight:764; displayWidth: 1080; displayHeight: 764; debugUIEnabled: false;'>
+        <a-camera
+            gps-camera rotation-reader look-controls position="0 1.6 0">
+        </a-camera>
+    </a-scene>
+</body>
+</html>

@@ -1,0 +1,4 @@
+serverpem/
+wayfinding_server.js
+node_modules/
+package*
