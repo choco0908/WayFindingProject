@@ -1,4 +1,4 @@
-const loadPlaces = function (method) {
+const loadPlaces = function (method,position) {
     // COMMENT FOLLOWING LINE IF YOU WANT TO USE STATIC DATA AND ADD COORDINATES IN THE FOLLOWING 'PLACES' ARRAY
 
     const PLACES = [
@@ -36,21 +36,41 @@ const loadPlaces = function (method) {
         var KPLACES = new Array();
 
         var placeInfo = new Object();
-        var location = new Object();
+        var destination = new Object();
         placeInfo.name = getParameterByName('name');
-        location.lat = getParameterByName('lat');
-        location.lng = getParameterByName('lng');
-        placeInfo.location = location;
+        destination.latitude = getParameterByName('lat');
+        destination.longitude = getParameterByName('lng');
+        placeInfo.location = destination;
 
         KPLACES.push(placeInfo);
 
         console.log(KPLACES);
+
+        loadPathFromServer(position,destination);
 
         return Promise.resolve(KPLACES);
     };
     
     return Promise.resolve(PLACES);
 };
+
+function loadPathFromServer(position,destination){
+    let PLACES = new Array();
+    let placeInfo = new Object();
+    let location = new Object();
+    
+    const pathAPi = `/getpath/${position.latitude}/${position.longitude}/${destination.latitude}/${destination.longitude}`;
+    console.log(pathAPi);
+    /*
+    fetch(pathAPi)
+        .then((res) => {
+            return res.json();
+        })
+        .then((resp) => {
+            console.log(resp);
+        })
+    */
+}
 
 
 window.onload = () => {
@@ -62,28 +82,28 @@ window.onload = () => {
         console.log("현재 내위치는 : " +position.coords.latitude+", 경도: " + position.coords.longitude + "에 있습니다");
 
         // then use it to load from remote APIs some places nearby
-        loadPlaces(kind)
+        loadPlaces(kind,position.coords)
             .then((places) => {
                 places.forEach((place) => {
-                    const latitude = place.location.lat;
-                    const longitude = place.location.lng;
+                    const latitude = place.location.latitude;
+                    const longitude = place.location.longitude;
 
                     // add place icon
                     const icon = document.createElement('a-image');
                     icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
                     icon.setAttribute('name', place.name);
-                    icon.setAttribute('src', '/assets/map-marker.png');
+                    icon.setAttribute('src', '/img/map-marker.png');
 
                     // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
                     icon.setAttribute('scale', '2, 2');
-
+                    /*
                     // add place label
                     label = document.getElementById('place-name');
                     label.setAttribute('name',place.name);
                     label.setAttribute('latitude', latitude); 
                     label.setAttribute('longitude', longitude);
                     label.parentElement.style.visibility="visible";
-
+                    */
                     scene.appendChild(icon);
                 });
             })
