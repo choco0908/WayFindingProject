@@ -61,15 +61,21 @@ function loadPathFromServer(position,destination){
     
     const pathAPi = `/getpath/${position.latitude}/${position.longitude}/${destination.latitude}/${destination.longitude}`;
     console.log(pathAPi);
-    /*
+    
     fetch(pathAPi)
         .then((res) => {
-            return res.json();
+            if (res.status === 200 || res.status === 201) { 
+                return res.text()
+            }
+            else {
+                console.log(res.statusText)
+            }
         })
-        .then((resp) => {
-            console.log(resp);
+        .then(text => console.log(text))
+        .catch((error) =>{
+            console.error(error);
         })
-    */
+    
 }
 
 
