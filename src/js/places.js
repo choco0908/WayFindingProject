@@ -71,7 +71,7 @@ function loadPathFromServer(position,destination){
                 console.log(res.statusText)
             }
         })
-        .then(text => console.log(text))
+        .then(text => console.log(JSON.parse(text)))
         .catch((error) =>{
             console.error(error);
         })

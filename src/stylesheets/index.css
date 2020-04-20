@@ -2,7 +2,7 @@ span {
     margin-right: 0.5em;
 }
 
-.submit_css { position: relative; top: 10px; left: 50%; border: 1px solid skyblue; background-color: rgba(0,0,0,0); color: skyblue; padding: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-top-left-radius: 5px; border-bottom-left-radius: 5px; font-size: medium;}
+.submit_css { position: relative; top: 10px; left: 47%; border: 1px solid skyblue; background-color: rgba(0,0,0,0); color: skyblue; padding: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-top-left-radius: 5px; border-bottom-left-radius: 5px; font-size: medium;}
 .submit_css:hover { color:white; background-color: skyblue; }
 div.debug {
     position: fixed;
