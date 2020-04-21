@@ -54,6 +54,36 @@ const loadPlaces = function (method,position) {
     return Promise.resolve(PLACES);
 };
 
+function getPosition(point){
+    const camera = document.querySelector('[gps-camera]').components['gps-camera'];
+    let position = { x: 0, y: 0, z: 0 };
+
+        // update position.x
+    let dstCoords = {
+        longitude: point.longitude,
+        latitude: camera.originCoords.latitude,
+    };
+
+    position.x = camera.computeDistanceMeters(camera.originCoords, dstCoords);
+    position.x *= point.longitude > camera.originCoords.longitude ? 1 : -1;
+
+    // update position.z
+    dstCoords = {
+        longitude: camera.originCoords.longitude,
+        latitude: point.latitude,
+    };
+
+    position.z = camera.computeDistanceMeters(camera.originCoords, dstCoords);
+    position.z *= point.latitude > camera.originCoords.latitude ? -1 : 1;
+
+    if (position.y !== 0) {
+        var altitude = camera.originCoords.altitude !== undefined ? camera.originCoords.altitude : 0;
+        position.y = position.y - altitude;
+    }
+
+    return position;
+}
+
 function loadPathFromServer(position,destination){
     let PLACES = new Array();
     let placeInfo = new Object();
