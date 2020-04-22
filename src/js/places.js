@@ -1,4 +1,4 @@
-const loadPlaces = function (method,position) {
+const loadPlaces = function (method,position,destination) {
     // COMMENT FOLLOWING LINE IF YOU WANT TO USE STATIC DATA AND ADD COORDINATES IN THE FOLLOWING 'PLACES' ARRAY
 
     const PLACES = [
@@ -33,22 +33,7 @@ const loadPlaces = function (method,position) {
     ];
 
     if (method === 'kakao') {
-        var KPLACES = new Array();
-
-        var placeInfo = new Object();
-        var destination = new Object();
-        placeInfo.name = getParameterByName('name');
-        destination.latitude = getParameterByName('lat');
-        destination.longitude = getParameterByName('lng');
-        placeInfo.location = destination;
-
-        KPLACES.push(placeInfo);
-
-        console.log(KPLACES);
-
-        loadPathFromServer(position,destination);
-
-        return Promise.resolve(KPLACES);
+        return loadPathFromServer(position,destination);
     };
     
     return Promise.resolve(PLACES);
@@ -56,58 +41,63 @@ const loadPlaces = function (method,position) {
 
 function getPosition(point){
     const camera = document.querySelector('[gps-camera]').components['gps-camera'];
+    //console.log(camera.currentCoords);
     let position = { x: 0, y: 0, z: 0 };
 
         // update position.x
     let dstCoords = {
         longitude: point.longitude,
-        latitude: camera.originCoords.latitude,
+        latitude: camera.currentCoords.latitude,
     };
 
-    position.x = camera.computeDistanceMeters(camera.originCoords, dstCoords);
-    position.x *= point.longitude > camera.originCoords.longitude ? 1 : -1;
+    position.x = camera.computeDistanceMeters(camera.currentCoords, dstCoords);
+    position.x *= point.longitude > camera.currentCoords.longitude ? 1 : -1;
 
     // update position.z
     dstCoords = {
-        longitude: camera.originCoords.longitude,
+        longitude: camera.currentCoords.longitude,
         latitude: point.latitude,
     };
 
-    position.z = camera.computeDistanceMeters(camera.originCoords, dstCoords);
-    position.z *= point.latitude > camera.originCoords.latitude ? -1 : 1;
+    position.z = camera.computeDistanceMeters(camera.currentCoords, dstCoords);
+    position.z *= point.latitude > camera.currentCoords.latitude ? -1 : 1;
 
     if (position.y !== 0) {
-        var altitude = camera.originCoords.altitude !== undefined ? camera.originCoords.altitude : 0;
+        var altitude = camera.currentCoords.altitude !== undefined ? camera.currentCoords.altitude : 0;
         position.y = position.y - altitude;
     }
 
+    console.log('translated to '+AFRAME.utils.coordinates.stringify(position));
     return position;
 }
 
 function loadPathFromServer(position,destination){
-    let PLACES = new Array();
-    let placeInfo = new Object();
-    let location = new Object();
-    
-    const pathAPi = `/getpath/${position.latitude}/${position.longitude}/${destination.latitude}/${destination.longitude}`;
-    console.log(pathAPi);
-    
-    fetch(pathAPi)
-        .then((res) => {
-            if (res.status === 200 || res.status === 201) { 
-                return res.text()
-            }
-            else {
-                console.log(res.statusText)
-            }
-        })
-        .then(text => console.log(JSON.parse(text)))
-        .catch((error) =>{
-            console.error(error);
-        })
-    
+    return new Promise(function(resolve,reject){
+        let PLACES = new Array();
+        let placeInfo = new Object();
+        let location = new Object();
+        
+        const pathAPi = `/getpath/${position.latitude}/${position.longitude}/${destination.latitude}/${destination.longitude}`;
+        console.log(pathAPi);
+        
+        fetch(pathAPi)
+            .then((res) => {
+                if (res.status === 200 || res.status === 201) { 
+                    return res.text()
+                }
+                else {
+                    console.log(res.statusText);
+                }
+            })
+            .then(text => {
+                //console.log(JSON.parse(text));
+                resolve(JSON.parse(text));
+            })
+            .catch((error) =>{
+                console.error(error);
+            })
+    });
 }
-
 
 window.onload = () => {
     const scene = document.querySelector('a-scene');
@@ -117,31 +107,37 @@ window.onload = () => {
     return navigator.geolocation.getCurrentPosition(function (position) {
         console.log("현재 내위치는 : " +position.coords.latitude+", 경도: " + position.coords.longitude + "에 있습니다");
 
-        // then use it to load from remote APIs some places nearby
-        loadPlaces(kind,position.coords)
-            .then((places) => {
-                places.forEach((place) => {
-                    const latitude = place.location.latitude;
-                    const longitude = place.location.longitude;
+        let destination = new Object();
+        destination.name = getParameterByName('name');
+        destination.latitude = getParameterByName('lat');
+        destination.longitude = getParameterByName('lng');
+                
+        //add destination
 
-                    // add place icon
+        const icon = document.createElement('a-image');
+        icon.setAttribute('gps-entity-place', `latitude: ${destination.latitude}; longitude: ${destination.longitude}`);
+        icon.setAttribute('name', destination.name);
+        icon.setAttribute('src', '/img/map-marker.png');
+        icon.setAttribute('scale', '5, 5');
+        scene.appendChild(icon);
+
+        // get points from path API and add points
+
+        loadPlaces(kind,position.coords,destination)
+            .then((points) => {
+                // add point icon
+                points.point.forEach((point) => {
+                    console.log(point);
                     const icon = document.createElement('a-image');
-                    icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
-                    icon.setAttribute('name', place.name);
-                    icon.setAttribute('src', '/img/map-marker.png');
-
-                    // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
-                    icon.setAttribute('scale', '2, 2');
-                    /*
-                    // add place label
-                    label = document.getElementById('place-name');
-                    label.setAttribute('name',place.name);
-                    label.setAttribute('latitude', latitude); 
-                    label.setAttribute('longitude', longitude);
-                    label.parentElement.style.visibility="visible";
-                    */
+                    const position = AFRAME.utils.coordinates.stringify(getPosition(point.lookAt));
+                    icon.setAttribute('gps-entity-place', `latitude: ${point.latitude}; longitude: ${point.longitude}`);
+                    icon.setAttribute('dest', point.dest);
+                    icon.setAttribute('look-at',position);
+                    //gltf-model="url(/path/to/tree.gltf)"
+                    icon.setAttribute('gltf-model', 'url(/assets/objects/arrow.gltf)');
+                    icon.setAttribute('scale', '0.5 0.5 0.5');
                     scene.appendChild(icon);
-                });
+                });  
             })
     },
         (err) => console.error('Error in retrieving position', err),
