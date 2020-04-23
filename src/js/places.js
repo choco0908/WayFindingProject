@@ -117,7 +117,7 @@ window.onload = () => {
         const icon = document.createElement('a-image');
         icon.setAttribute('gps-entity-place', `latitude: ${destination.latitude}; longitude: ${destination.longitude}`);
         icon.setAttribute('name', destination.name);
-        icon.setAttribute('src', '/img/map-marker.png');
+        icon.setAttribute('src', 'https://raw.githubusercontent.com/choco0908/WayFindingProject/master/src/img/map-marker.png');
         icon.setAttribute('scale', '5, 5');
         scene.appendChild(icon);
 
@@ -134,7 +134,7 @@ window.onload = () => {
                     icon.setAttribute('dest', point.dest);
                     icon.setAttribute('look-at',position);
                     //gltf-model="url(/path/to/tree.gltf)"
-                    icon.setAttribute('gltf-model', 'url(/assets/objects/arrow.gltf)');
+                    icon.setAttribute('gltf-model', 'url(https://raw.githubusercontent.com/choco0908/WayFindingProject/master/src/assets/objects/arrow.gltf)');
                     icon.setAttribute('scale', '0.5 0.5 0.5');
                     scene.appendChild(icon);
                 });  
