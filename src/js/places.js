@@ -121,12 +121,13 @@ window.onload = () => {
         icon.setAttribute('scale', '5, 5');
         scene.appendChild(icon);
 
-        // get points from path API and add points
+        // get paths from path API and add paths
 
         loadPlaces(kind,position.coords,destination)
-            .then((points) => {
+            .then((paths) => {
                 // add point icon
-                points.point.forEach((point) => {
+                const path = paths.routes[0].steps[0].points;
+                path.forEach((point) => {
                     console.log(point);
                     const icon = document.createElement('a-image');
                     const position = AFRAME.utils.coordinates.stringify(getPosition(point.lookAt));
