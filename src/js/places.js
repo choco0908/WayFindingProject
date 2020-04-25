@@ -117,7 +117,7 @@ window.onload = () => {
         const icon = document.createElement('a-image');
         icon.setAttribute('gps-entity-place', `latitude: ${destination.latitude}; longitude: ${destination.longitude}`);
         icon.setAttribute('name', destination.name);
-        icon.setAttribute('src', 'https://raw.githubusercontent.com/choco0908/WayFindingProject/master/src/img/map-marker.png');
+        icon.setAttribute('src', '/img/map-marker.png');
         icon.setAttribute('scale', '5, 5');
         scene.appendChild(icon);
 
@@ -125,8 +125,15 @@ window.onload = () => {
 
         loadPlaces(kind,position.coords,destination)
             .then((paths) => {
+                //remove start point , destination point and set look-at value
+                let path = paths.routes[0].steps[0].points;
+                for(let i = 1 ;i<path.length-1;i++){
+                    path[i].lookAt.latitude = path[i+1].latitude;
+                    path[i].lookAt.longitude = path[i+1].longitude;
+                }
+                path.splice(0,1);
+                path.splice(-1,1);
                 // add point icon
-                const path = paths.routes[0].steps[0].points;
                 path.forEach((point) => {
                     console.log(point);
                     const icon = document.createElement('a-image');
@@ -134,8 +141,7 @@ window.onload = () => {
                     icon.setAttribute('gps-entity-place', `latitude: ${point.latitude}; longitude: ${point.longitude}`);
                     icon.setAttribute('dest', point.dest);
                     icon.setAttribute('look-at',position);
-                    //gltf-model="url(/path/to/tree.gltf)"
-                    icon.setAttribute('gltf-model', 'url(https://raw.githubusercontent.com/choco0908/WayFindingProject/master/src/assets/objects/arrow.gltf)');
+                    icon.setAttribute('gltf-model', 'url(/assets/objects/arrow.gltf)');
                     icon.setAttribute('scale', '0.5 0.5 0.5');
                     scene.appendChild(icon);
                 });  
